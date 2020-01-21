@@ -11,20 +11,18 @@
 |
 */
 
-route::get('/login', 'AuthController@login')->name('login');
-route::get('/loginguru', 'AuthguruController@login')->name('login');
-route::post('/postlogin', 'AuthController@postlogin');
-route::get('/logout', 'AuthController@logout');
+Route::get('/login', 'AuthController@login')->name('login');
+Route::get('/loginguru', 'AuthguruController@login')->name('login');
+Route::post('/postlogin', 'AuthController@postlogin');
+Route::get('/logout', 'AuthController@logout');
 
 Route::group(['middleware' => ['auth', 'CheckRole:admin, guru ,siswa']], function () {
-    Route::get('/dashboard', 'DashboardController@index');
+    Route::get('/dashboard', 'DashboardController@index')->name('dashboard');
     Route::get('/nilai2', 'NilaiController@index2');
-
 });
+
 Route::group(['middleware' => ['auth', 'CheckRole:admin']], function () {
-
     Route::get('/siswa', 'SiswaController@index');
-
     Route::post('/siswa/create', 'SiswaController@create');
     Route::get('/siswa/{id}/edit', 'SiswaController@edit');
     Route::post('/siswa/{id}/update', 'SiswaController@update');
@@ -65,22 +63,31 @@ Route::group(['middleware' => ['auth', 'CheckRole:admin']], function () {
     Route::post('/token/{id}/update', 'TokenController@update');
     Route::get('/token/{id}/delete', 'TokenController@delete');
     Route::get('/seluruhtoken', 'TokenController@index2');
-
 });
 
-Route::group(['middleware' => ['auth', 'CheckRole:siswa']], function () {
-    Route::get('/kerjakan', 'SoalController@kerjakan');
-    //Route::get('/kerjakan/soal_kerjakan2','SoalController@soal_kerjakan');
-    Route::get('/soal/jawab', 'SoalController@jawab');
-    Route::post('/kerjakan/soal_kerjakan', 'SoalController@simpan_jawaban');
-    Route::post('/kerjakan/selesai', 'SoalController@simpan_nilai');
+Route::group(['prefix' => 'quiz', 'middleware' => ['auth', 'CheckRole:siswa']], function () {
 
-    // Route::get('/token','SoalController@token');
-    //Route::post('/soal_kerjakan/update','JawabsoalController@update');
-    Route::get('/soal_kerjakan', 'SoalController@simpan_jawaban');
+    Route::post('/', [
+        'uses' => 'SoalController@showQuiz',
+        'as' => 'show.quiz'
+    ]);
+
+    Route::post('start', [
+        'uses' => 'SoalController@startQuiz',
+        'as' => 'start.quiz'
+    ]);
+
+    Route::get('load/{ids}/answer', [
+        'uses' => 'SoalController@loadQuizAnswers',
+        'as' => 'load.quiz.answers'
+    ]);
+
+    Route::post('submit', [
+        'uses' => 'SoalController@submitQuiz',
+        'as' => 'submit.quiz'
+    ]);
 
 });
-
 
 Route::group(['middleware' => ['auth', 'CheckRole:guru']], function () {
     // Route::get('/dashboard','DashboardController@index');
@@ -98,6 +105,4 @@ Route::group(['middleware' => ['auth', 'CheckRole:guru']], function () {
 
     Route::get('/nilai', 'NilaiController@index');
     Route::get('/nilai2', 'NilaiController@index2');
-
-
 });
